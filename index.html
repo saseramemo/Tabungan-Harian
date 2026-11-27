@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Tabungan Harian</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#D97757">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#F5F3EE; --card:#FFFFFF; --ink:#1A1918; --muted:#77756D; --line:#ECE9E1;
+  --accent:#D97757; --accent-dark:#B85C3C; --soft:#FBEBE3; --ok:#2F7D4F; --ok-soft:#E4F2E9; --warn:#C0452B; --warn-soft:#FBE7E1;
+  --shadow:0 6px 20px rgba(110,60,30,.10);
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#161514; --card:#232120; --ink:#F6F4EF; --muted:#A7A59B; --line:#34322F; --soft:#3A2820; --ok:#7FCB9A; --ok-soft:#1F3328; --warn:#F2907A; --warn-soft:#3C2420; --shadow:0 6px 20px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.4}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+button{font-family:inherit;color:inherit}
+.wrap{max-width:480px;margin:0 auto;padding:0 16px}
+.num{font-variant-numeric:tabular-nums}
+
+/* Header */
+header{background:var(--accent);color:#fff;padding:calc(8px + env(safe-area-inset-top,0px)) 0 8px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:28px;height:28px;border-radius:9px}
+.nm{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.hbtn{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:4px 12px;font-weight:600;font-size:13px}
+main{margin-top:14px}
+
+/* Kartu */
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.bal{padding:18px}
+.bal-top{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:14px}
+.eye{background:var(--soft);color:var(--accent-dark);border:0;border-radius:999px;width:36px;height:36px;display:grid;place-items:center}
+.bal-amt{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 14px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bal-sub{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:13px;margin-top:8px}
+
+.today .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.today .ttl{font-weight:700}
+.chip{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.soon{background:var(--soft);color:var(--accent-dark)}
+.today .date{color:var(--muted);font-size:14px}
+.today .amt{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:10px 0 14px}
+.btn{display:block;width:100%;border:0;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:17px;padding:15px;cursor:pointer}
+.btn:active{background:var(--accent-dark)}
+.btn.ghost{background:var(--soft);color:var(--accent-dark)}
+.btn.danger{background:var(--warn-soft);color:var(--warn)}
+.btn.sm{display:inline-block;width:auto;font-size:14px;padding:9px 16px;border-radius:12px}
+.pulse{animation:pulse 1.2s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,119,87,.6)}100%{box-shadow:0 0 0 16px rgba(217,119,87,0)}}
+.paidmsg{display:flex;align-items:center;gap:10px;color:var(--ok);background:var(--ok-soft);border-radius:14px;padding:13px 14px;font-weight:600}
+
+/* Tile aksi cepat */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tile{background:var(--card);border:0;border-radius:20px;box-shadow:var(--shadow);padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.ico{width:42px;height:42px;border-radius:14px;background:var(--soft);color:var(--accent-dark);display:grid;place-items:center;flex:none;position:relative}
+.ico.warn{background:var(--warn-soft);color:var(--warn)}
+.ico.ok{background:var(--ok-soft);color:var(--ok)}
+.tile .t{font-weight:700}.tile .s{color:var(--muted);font-size:13px;margin-top:-4px}
+.badge{position:absolute;top:-5px;right:-5px;background:var(--warn);color:#fff;font-size:11px;font-weight:700;border-radius:99px;min-width:19px;height:19px;display:grid;place-items:center;padding:0 5px}
+
+/* Daftar */
+.sec{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 10px}
+.sec h2{font-size:17px;margin:0;font-weight:700}
+.link{background:none;border:0;color:var(--accent-dark);font-weight:700;font-size:14px;padding:4px}
+@media (prefers-color-scheme:dark){.link{color:var(--accent)}}
+.list{padding:4px 14px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.item:first-child{border-top:0}
+.item .mid{flex:1;min-width:0}
+.item .t{font-weight:600}.item .s{color:var(--muted);font-size:13px}
+.item .r{text-align:right;font-weight:700;white-space:nowrap}
+.plus{color:var(--ok)}
+.empty{color:var(--muted);text-align:center;padding:22px 8px}
+.day{color:var(--muted);font-size:13px;font-weight:700;margin:14px 4px 8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:14px;padding:4px;margin-bottom:14px}
+.seg button{border:0;background:none;border-radius:11px;padding:10px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--accent-dark);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.banner{background:var(--soft);display:flex;gap:12px;align-items:flex-start}
+.banner p{margin:0 0 10px;font-size:14px}
+
+/* Form */
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+label.first{margin-top:0}
+input[type=number],input[type=date],input[type=text],input[type=tel]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:16px var(--sans)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:10px;margin-top:6px;font-weight:600}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.note{color:var(--muted);font-size:13px;margin:10px 0 0}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+h3.cardt{margin:0 0 6px;font-size:17px}
+
+/* Profil */
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;flex:none}
+.avatar.lg{width:60px;height:60px;font-size:24px}
+.greet{display:flex;align-items:center;gap:12px;margin:0 0 14px;width:100%;background:none;border:0;text-align:left;padding:0;cursor:pointer}
+.greet .g1{color:var(--muted);font-size:13px}.greet .g2{font-weight:800;font-size:20px;letter-spacing:-.01em}
+.prow{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.prow .pn{font-weight:800;font-size:18px}.prow .ps{color:var(--muted);font-size:14px}
+.sw{display:flex;gap:10px;justify-content:center;margin:8px 0 4px}
+.sw button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;padding:0}
+.sw button.on{border-color:var(--ink)}
+.form{text-align:left}
+
+/* Header profil + foto */
+.hright{display:flex;align-items:center;gap:10px}
+.hav{width:34px;height:34px;padding:0;border:2px solid rgba(255,255,255,.85);border-radius:50%;background:none;display:block;overflow:hidden;cursor:pointer}
+.hav .avatar{width:100%;height:100%;font-size:15px}
+.avatar{overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar.xl{width:78px;height:78px;font-size:30px;border:3px solid rgba(255,255,255,.85)}
+.pvrow{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.pvbtns{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+input[type=password]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:16px var(--sans)}
+.sheetbox{max-height:92vh;overflow-y:auto}
+
+/* Halaman akun (daftar / masuk) */
+#auth{display:none}
+body.auth #auth{display:block}
+body.auth main,body.auth header,body.auth nav{display:none}
+body.auth{padding-bottom:24px}
+.auth-top{background:var(--accent);color:#fff;text-align:center;padding:calc(30px + env(safe-area-inset-top,0px)) 20px 64px;border-radius:0 0 28px 28px}
+.auth-top img{width:60px;height:60px;border-radius:17px;margin-bottom:10px}
+.auth-top .avatar{margin:0 auto 10px}
+.auth-top h1{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.01em}
+.auth-top p{margin:0;opacity:.92}
+.authbox{max-width:480px;margin:-40px auto 0;padding:0 16px}
+
+/* Nav bawah */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);box-shadow:0 -4px 18px rgba(0,0,0,.08);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding:6px 8px}
+nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;font-weight:600;color:var(--muted)}
+nav button .pill{width:52px;height:30px;border-radius:99px;display:grid;place-items:center}
+nav button.on{color:var(--accent-dark)}
+nav button.on .pill{background:var(--soft)}
+@media (prefers-color-scheme:dark){nav button.on{color:var(--accent)}}
+
+/* Sheet / struk */
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+#sheet.open{display:flex}
+.sheetbox{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));animation:up .25s ease-out;text-align:center}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheetbox{animation:none}}
+.okmark{width:64px;height:64px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;margin:0 auto 10px}
+.sheetbox h3{margin:0;font-size:18px}
+.sheetbox .big{font-size:32px;font-weight:800;margin:6px 0 14px;letter-spacing:-.02em}
+dl{margin:0 0 18px;text-align:left;background:var(--bg);border-radius:14px;padding:4px 14px}
+dl div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px dashed var(--line)}
+dl div:first-child{border-top:0}
+dt{color:var(--muted);font-size:14px}dd{margin:0;font-weight:600;text-align:right;font-size:14px}
+.sheetbox .stack{margin-top:0}
+
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;white-space:nowrap}
+#toast.show{opacity:1}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<header><div class="wrap hrow">
+  <div class="brand"><img src="icons/icon-192.png" alt=""><div class="nm">Tabungan Harian</div></div>
+  <div class="hright"><button class="hbtn" id="install" hidden>Pasang</button><span id="hav"></span></div>
+</div></header>
+
+<main class="wrap" id="app"></main>
+<div id="auth"></div>
+<input type="file" id="photo" accept="image/*" hidden>
+<nav><div class="wrap" id="nav"></div></nav>
+<div id="sheet"></div>
+<div id="toast" role="status"></div>
+
+<script src="core.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const rp = Core.rp;
+let S, tab = 'home', payTab = 'late', aheadShown = 5, deferredInstall = null, swReg = null, lastDay = null;
+
+/* ---------- Ikon ---------- */
+const IC = {
+  home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  pay:'<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  sliders:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/>',
+  deposit:'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  bell:'<path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/>'
+};
+const svg = (n, s = 22) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- Format ---------- */
+const fmtDate = d => d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+const fmtShort = d => d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
+const fmtTime = t => new Date(t).toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+const fmtHour = t => new Date(t).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+function dayLabel(ts){
+  const k = Core.dateStr(new Date(ts)), now = new Date(), y = new Date(now); y.setDate(now.getDate()-1);
+  if (k === Core.dateStr(now)) return 'Hari ini';
+  if (k === Core.dateStr(y)) return 'Kemarin';
+  return new Date(ts).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+}
+const kindOf = p => p.d < p.todayNo ? ['Terlambat','warn'] : p.d > p.todayNo ? ['Di muka','soon'] : ['Tepat waktu','ok'];
+const sumPaid = () => Object.values(S.payments).reduce((a,p)=>a+p.amount,0);
+const targetUntil = n => { let t=0; for (let d=1; d<=n; d++) t += Core.amountFor(S,d); return t; };
+const txns = () => Object.entries(S.payments).map(([d,p])=>({d:+d,...p})).sort((a,b)=>b.paidAt-a.paidAt);
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),2200); }
+const persist = () => Core.save(S);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PCOL = ['#D97757','#4F9D69','#4B7BEC','#8E5CD9','#D6568A','#3A3836'];
+let draftColor = PCOL[0], draftPhoto;
+const avatar = (p, cls='') => `<span class="avatar ${cls}" style="background:${esc(p.color||PCOL[0])}">${p.photo ? `<img src="${esc(p.photo)}" alt="">` : esc((p.name||'?').trim().charAt(0).toUpperCase())}</span>`;
+const greetWord = () => { const h = new Date().getHours(); return h<11?'Selamat pagi':h<15?'Selamat siang':h<18?'Selamat sore':'Selamat malam'; };
+
+/* ---------- Sheet ---------- */
+function openSheet(html){ const s=$('#sheet'); s.innerHTML = `<div class="sheetbox" role="dialog" aria-modal="true">${html}</div>`; s.classList.add('open'); }
+function closeSheet(){ const s=$('#sheet'); s.classList.remove('open'); s.innerHTML=''; }
+const rowsHtml = rows => `<dl>${rows.map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>`;
+
+function receipt(title, amount, rows){
+  openSheet(`<div class="okmark">${svg('check',34)}</div><h3>${title}</h3><div class="big num">${amount}</div>${rowsHtml(rows)}
+    <button class="btn" data-act="close">Selesai</button>`);
+}
+function detail(d){
+  const p = S.payments[d]; if (!p) return;
+  const [kind] = kindOf({d,...p});
+  openSheet(`<h3>Detail setoran</h3><div class="big num plus">+${rp(p.amount)}</div>${rowsHtml([
+    ['Untuk', 'Hari ke-'+d+' · '+fmtShort(Core.dateOfDay(S,d))], ['Dicatat', fmtTime(p.paidAt)], ['Status', kind]])}
+    <div class="stack"><button class="btn ghost" data-act="close">Tutup</button><button class="btn danger" data-del="${d}">Hapus catatan</button></div>`);
+}
+
+/* ---------- Akun, profil, foto ---------- */
+const cleanUser = s => String(s).toLowerCase().replace(/[^a-z0-9_.]/g,'').slice(0,20);
+const curPhoto = () => draftPhoto === undefined ? (S.profile && S.profile.photo) : draftPhoto;
+function previewHtml(){
+  const el = $('#p-name');
+  const nm = (el && el.value) || (S.profile && S.profile.name) || '?';
+  return avatar({ name:nm, color:draftColor, photo:curPhoto() }, 'lg');
+}
+function updatePreview(){ const pv = $('#pv'); if (pv) pv.innerHTML = previewHtml(); }
+const photoRow = () => `<div class="pvrow"><span id="pv">${previewHtml()}</span><div class="pvbtns">
+  <button class="btn sm ghost" data-act="photo">Pilih foto</button><button class="link" data-act="rmphoto">Hapus foto</button></div></div>`;
+
+function readPhoto(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const s = 256, c = document.createElement('canvas'); c.width = c.height = s;
+      const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, s, s);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('foto')); };
+    img.src = url;
+  });
+}
+const hasCrypto = () => !!(window.crypto && crypto.subtle);
+async function hashPw(pw, salt){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pw));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+const newSalt = () => [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2,'0')).join('');
+function newAcct(){ let d = '88'; for (let i=0;i<8;i++) d += Math.floor(Math.random()*10); return d.replace(/(\d{4})(\d{4})(\d{2})/, '$1 $2 $3'); }
+
+function viewRegister(){
+  draftPhoto = undefined; draftColor = PCOL[0];
+  return `<div class="auth-top"><img src="icons/icon-192.png" alt=""><h1>Tabungan Harian</h1><p>Buat akun untuk mulai menabung</p></div>
+  <div class="authbox"><div class="card form">
+    ${photoRow()}
+    <label for="p-name">Nama</label><input type="text" id="p-name" maxlength="30" autocomplete="name">
+    <label for="p-user">Username</label><input type="text" id="p-user" maxlength="20" autocapitalize="none" autocomplete="username">
+    <label for="p-phone">Nomor HP</label><input type="tel" id="p-phone" maxlength="16" autocomplete="tel">
+    <label for="p-pass">Password</label><input type="password" id="p-pass" autocomplete="new-password">
+    <p class="note" style="margin-top:6px">Minimal 4 karakter.</p>
+    <div class="stack"><button class="btn" data-act="register">Buat akun</button></div>
+    <p class="note" style="text-align:center">Akun hanya tersimpan di HP ini.</p></div></div>`;
+}
+function viewLogin(){
+  const p = S.profile;
+  return `<div class="auth-top">${avatar(p,'xl')}<h1>Halo, ${esc(p.name.split(' ')[0])}</h1><p>Masuk untuk melanjutkan</p></div>
+  <div class="authbox"><div class="card form">
+    <label class="first" for="l-user">Username</label><input type="text" id="l-user" value="${esc(p.username)}" autocapitalize="none" autocomplete="username">
+    <label for="l-pass">Password</label><input type="password" id="l-pass" autocomplete="current-password">
+    <div class="stack"><button class="btn" data-act="login">Masuk</button></div>
+    <button class="link" style="display:block;margin:12px auto 0" data-act="forgot">Lupa password?</button></div></div>`;
+}
+
+async function doRegister(){
+  if (!hasCrypto()) return toast('Buka lewat alamat https supaya bisa membuat akun');
+  const name = $('#p-name').value.trim();
+  if (!name) return toast('Isi nama dulu');
+  const user = cleanUser($('#p-user').value) || cleanUser(name);
+  if (user.length < 3) return toast('Username minimal 3 huruf atau angka');
+  const pw = $('#p-pass').value;
+  if (pw.length < 4) return toast('Password minimal 4 karakter');
+  const salt = newSalt();
+  S.profile = { name, username:user, phone:$('#p-phone').value.trim(), color:draftColor, photo:draftPhoto || null,
+                acct:newAcct(), since:Date.now(), salt, passHash: await hashPw(pw, salt) };
+  S.loggedIn = true; tab = 'home';
+  await persist(); render(); scrollTo(0,0); toast('Akun dibuat');
+}
+async function doLogin(){
+  if (!hasCrypto()) return toast('Buka lewat alamat https supaya bisa masuk');
+  const p = S.profile, u = cleanUser($('#l-user').value), pw = $('#l-pass').value;
+  if (u !== p.username || (await hashPw(pw, p.salt)) !== p.passHash) return toast('Username atau password salah');
+  S.loggedIn = true; tab = 'home';
+  await persist(); render(); scrollTo(0,0);
+}
+
+function profileSheet(){
+  const p = S.profile;
+  draftColor = p.color || PCOL[0]; draftPhoto = undefined;
+  openSheet(`<div class="form"><h3 style="text-align:center;margin:0 0 12px">Ubah profil</h3>
+    ${photoRow()}
+    <div class="sw" id="sw">${PCOL.map(c=>`<button data-color="${c}" class="${c===draftColor?'on':''}" style="background:${c}" aria-label="Pilih warna avatar"></button>`).join('')}</div>
+    <label for="p-name">Nama</label><input type="text" id="p-name" maxlength="30" value="${esc(p.name)}" autocomplete="off">
+    <label for="p-user">Username</label><input type="text" id="p-user" maxlength="20" value="${esc(p.username)}" autocapitalize="none" autocomplete="off">
+    <label for="p-phone">Nomor HP</label><input type="tel" id="p-phone" maxlength="16" value="${esc(p.phone||'')}">
+    <label for="p-pass">Password baru (kosongkan kalau tidak diganti)</label><input type="password" id="p-pass" autocomplete="new-password">
+    <div class="stack"><button class="btn" data-act="saveprofile">Simpan</button><button class="btn ghost" data-act="close">Batal</button></div></div>`);
+}
+async function saveProfile(){
+  const name = $('#p-name').value.trim();
+  if (!name) return toast('Isi nama dulu');
+  const user = cleanUser($('#p-user').value) || cleanUser(name);
+  if (user.length < 3) return toast('Username minimal 3 huruf atau angka');
+  const np = $('#p-pass').value;
+  if (np && np.length < 4) return toast('Password minimal 4 karakter');
+  if (np && !hasCrypto()) return toast('Buka lewat alamat https untuk mengganti password');
+  const p = Object.assign({}, S.profile, { name, username:user, phone:$('#p-phone').value.trim(), color:draftColor, photo:curPhoto() || null });
+  if (np){ p.salt = newSalt(); p.passHash = await hashPw(np, p.salt); S.loggedIn = true; }
+  S.profile = p;
+  await persist(); closeSheet(); toast('Profil tersimpan'); render();
+}
+
+/* ---------- Aksi data ---------- */
+async function pay(n){
+  if (S.payments[n]) return;
+  const todayNo = Core.dayNo(S);
+  S.payments[n] = { amount: Core.amountFor(S,n), paidAt: Date.now(), todayNo };
+  await persist();
+  if (n === todayNo && swReg) (await swReg.getNotifications({tag:'setor'})).forEach(x=>x.close());
+  render();
+  const p = S.payments[n];
+  receipt('Setoran berhasil', rp(p.amount), [
+    ['Untuk', 'Hari ke-'+n+' · '+fmtShort(Core.dateOfDay(S,n))], ['Waktu', fmtTime(p.paidAt)], ['Status', kindOf({d:n,...p})[0]]]);
+}
+async function payAllLate(){
+  const todayNo = Core.dayNo(S), list = Core.overdue(S, todayNo); if (!list.length) return;
+  let total = 0;
+  for (const d of list){ const a = Core.amountFor(S,d); total += a; S.payments[d] = { amount:a, paidAt:Date.now(), todayNo }; }
+  await persist(); render();
+  receipt('Tunggakan lunas', rp(total), [['Jumlah hari', list.length+' hari'], ['Waktu', fmtTime(Date.now())], ['Status','Terlambat']]);
+}
+
+/* ---------- Tampilan ---------- */
+function needAuth(){ return !S.profile ? 'register' : (S.profile.passHash && !S.loggedIn) ? 'login' : null; }
+
+function render(){
+  lastDay = Core.dayNo(S);
+  const a = needAuth();
+  document.body.classList.toggle('auth', !!a);
+  if (a){ $('#auth').innerHTML = a === 'register' ? viewRegister() : viewLogin(); return; }
+  $('#hav').innerHTML = `<button class="hav" data-tab="atur" aria-label="Profil">${avatar(S.profile)}</button>`;
+  const tabs = [['home','Beranda','home'],['bayar','Bayar','pay'],['riwayat','Riwayat','clock'],['atur','Atur','sliders']];
+  $('#nav').innerHTML = tabs.map(t=>`<button data-tab="${t[0]}" class="${tab===t[0]?'on':''}"><span class="pill">${svg(t[2])}</span>${t[1]}</button>`).join('');
+  $('#app').innerHTML = ({home:viewHome, bayar:viewBayar, riwayat:viewRiwayat, atur:viewAtur})[tab]();
+}
+
+function permBanner(){
+  if (!('Notification' in window) || Notification.permission === 'granted') return '';
+  const denied = Notification.permission === 'denied';
+  return `<div class="card banner"><div class="ico">${svg('bell')}</div><div><p><b>Notifikasi belum aktif.</b> ${denied
+    ? 'Izin diblokir. Buka pengaturan situs di Chrome, lalu izinkan notifikasi.'
+    : 'Aktifkan supaya diingatkan tiap jam kalau belum setor.'}</p>
+    ${denied ? '' : '<button class="btn sm" data-act="perm">Aktifkan</button>'}</div></div>`;
+}
+
+function txnItem(p, withDate){
+  const [kind, cls] = kindOf(p);
+  return `<button class="item" data-detail="${p.d}"><span class="ico ${cls==='warn'?'warn':cls==='ok'?'ok':''}">${svg('deposit')}</span>
+    <span class="mid"><div class="t">Setoran hari ke-${p.d}</div><div class="s">${kind} · ${withDate ? fmtTime(p.paidAt) : fmtHour(p.paidAt)}</div></span>
+    <span class="r num plus">+${rp(p.amount)}</span></button>`;
+}
+
+function viewHome(){
+  const n = Core.dayNo(S), paid = sumPaid(), target = targetUntil(Math.max(n,0));
+  const late = Core.overdue(S,n), lateSum = late.reduce((a,d)=>a+Core.amountFor(S,d),0);
+  const pct = target ? Math.min(100, Math.round(paid/target*100)) : (paid ? 100 : 0);
+  const hid = !!S.hide;
+
+  let today;
+  if (n < 1) {
+    today = `<div class="card today"><div class="top"><span class="ttl">Setoran hari ini</span><span class="chip soon">Belum mulai</span></div>
+      <div class="date">Mulai ${fmtDate(Core.dateOfDay(S,1))}</div><div class="amt num">${rp(Core.amountFor(S,1))}</div>
+      <button class="btn ghost" data-act="qa-ahead">Bayar di muka</button></div>`;
+  } else if (S.payments[n]) {
+    today = `<div class="card today"><div class="top"><span class="ttl">Setoran hari ke-${n}</span><span class="chip ok">Sudah disetor</span></div>
+      <div class="date">${fmtDate(Core.dateOfDay(S,n))}</div><div class="amt num">${rp(S.payments[n].amount)}</div>
+      <div class="paidmsg">${svg('check')} Besok setor ${rp(Core.amountFor(S,n+1))}</div></div>`;
+  } else {
+    today = `<div class="card today"><div class="top"><span class="ttl">Setoran hari ke-${n}</span><span class="chip warn">Belum disetor</span></div>
+      <div class="date">${fmtDate(Core.dateOfDay(S,n))}</div><div class="amt num">${rp(Core.amountFor(S,n))}</div>
+      <button class="btn" id="payToday" data-pay="${n}">Setor sekarang</button></div>`;
+  }
+
+  const recent = txns().slice(0,3);
+  let paidAhead = 0; for (const k in S.payments) if (+k > n) paidAhead++;
+
+  return permBanner() + `
+  <section class="card bal"><div class="bal-top"><span>Saldo tabungan</span>
+    <button class="eye" data-act="hide" aria-label="${hid?'Tampilkan saldo':'Sembunyikan saldo'}">${svg(hid?'eyeoff':'eye',20)}</button></div>
+    <div class="bal-amt num">${hid ? 'Rp ••••••' : rp(paid)}</div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="bal-sub"><span>${pct}% dari target sampai hari ini</span><span class="num">${hid ? '•••' : rp(target)}</span></div></section>
+  ${today}
+  <div class="tiles">
+    <button class="tile" data-act="qa-late"><span class="ico ${late.length?'warn':'ok'}">${svg(late.length?'alert':'check')}${late.length?`<b class="badge">${late.length}</b>`:''}</span>
+      <span><div class="t">Tunggakan</div><div class="s">${late.length ? late.length+' hari · '+rp(lateSum) : 'Tidak ada'}</div></span></button>
+    <button class="tile" data-act="qa-ahead"><span class="ico">${svg('cal')}</span>
+      <span><div class="t">Bayar di muka</div><div class="s">${paidAhead ? paidAhead+' hari lunas' : 'Untuk hari depan'}</div></span></button>
+  </div>
+  <div class="sec"><h2>Transaksi terakhir</h2>${recent.length?'<button class="link" data-tab="riwayat">Lihat semua</button>':''}</div>
+  <div class="card list">${recent.length ? recent.map(p=>txnItem(p,true)).join('') : '<div class="empty">Belum ada setoran.</div>'}</div>`;
+}
+
+function viewBayar(){
+  const n = Core.dayNo(S), late = Core.overdue(S,n);
+  const seg = `<div class="seg"><button data-seg="late" class="${payTab==='late'?'on':''}">Tunggakan${late.length?' ('+late.length+')':''}</button>
+    <button data-seg="ahead" class="${payTab==='ahead'?'on':''}">Di muka</button></div>`;
+  if (payTab === 'late') {
+    if (!late.length) return seg + `<div class="card empty">Tidak ada tunggakan.</div>`;
+    const sum = late.reduce((a,d)=>a+Core.amountFor(S,d),0);
+    return seg + `<div class="card list">${late.map(d=>`<div class="item"><span class="ico warn">${svg('alert')}</span>
+      <span class="mid"><div class="t">Hari ke-${d}</div><div class="s">${fmtShort(Core.dateOfDay(S,d))}</div></span>
+      <button class="btn sm" data-pay="${d}">${rp(Core.amountFor(S,d))}</button></div>`).join('')}</div>
+      <button class="btn ghost" data-act="payall">Bayar semua · ${rp(sum)}</button>`;
+  }
+  const first = Math.max(n+1,1), ahead = [];
+  for (let d=first; ahead.length<aheadShown; d++) if (!S.payments[d]) ahead.push(d);
+  let paidAhead = 0; for (const k in S.payments) if (+k > n) paidAhead++;
+  return seg + (paidAhead ? `<div class="note" style="margin:-4px 4px 12px">${paidAhead} hari ke depan sudah lunas.</div>` : '') +
+    `<div class="card list">${ahead.map(d=>`<div class="item"><span class="ico">${svg('cal')}</span>
+      <span class="mid"><div class="t">Hari ke-${d}</div><div class="s">${fmtShort(Core.dateOfDay(S,d))}</div></span>
+      <button class="btn sm ghost" data-pay="${d}">${rp(Core.amountFor(S,d))}</button></div>`).join('')}</div>
+      <button class="btn ghost" data-act="more">Tampilkan 5 hari lagi</button>`;
+}
+
+function viewRiwayat(){
+  const list = txns(); if (!list.length) return `<div class="card empty">Belum ada setoran. Setoran pertama akan tercatat di sini.</div>`;
+  const total = list.reduce((a,p)=>a+p.amount,0);
+  let html = `<div class="card"><div style="color:var(--muted);font-size:14px">Total ${list.length} setoran</div><div class="bal-amt num" style="margin:2px 0 0">${rp(total)}</div></div>`;
+  let cur = '', open = false;
+  for (const p of list){
+    const lbl = dayLabel(p.paidAt);
+    if (lbl !== cur){ if (open) html += '</div>'; html += `<div class="day">${lbl}</div><div class="card list">`; cur = lbl; open = true; }
+    html += txnItem(p,false);
+  }
+  return html + (open ? '</div>' : '');
+}
+
+function viewAtur(){
+  const perm = !('Notification' in window) ? 'tidak didukung' : ({granted:'aktif',denied:'diblokir',default:'belum diizinkan'})[Notification.permission];
+  const pr = S.profile;
+  const profileCard = `<div class="card"><div class="prow">${avatar(pr,'lg')}<div style="min-width:0"><div class="pn">${esc(pr.name)}</div><div class="ps">@${esc(pr.username)}${pr.phone ? ' · '+esc(pr.phone) : ''}</div></div></div>
+    ${rowsHtml([['No. rekening', pr.acct], ['Anggota sejak', new Date(pr.since).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})]])}
+    <div class="stack" style="margin-top:0"><button class="btn ghost" data-act="profile">Ubah profil</button>${pr.passHash ? '<button class="btn danger" data-act="logout">Keluar</button>' : ''}</div></div>`;
+  return profileCard + `<div class="card"><h3 class="cardt">Setoran</h3>
+    <label class="first" for="f-date">Tanggal hari ke-1</label><input type="date" id="f-date" value="${S.startDate}">
+    <div class="two"><div><label for="f-start">Hari ke-1 (Rp)</label><input type="number" id="f-start" inputmode="numeric" min="0" step="100" value="${S.startAmount}"></div>
+    <div><label for="f-step">Naik per hari (Rp)</label><input type="number" id="f-step" inputmode="numeric" min="0" step="100" value="${S.step}"></div></div></div>
+    <div class="card"><h3 class="cardt">Pengingat</h3>
+    <div class="note" style="margin:0 0 10px">Izin notifikasi: <b>${perm}</b></div>
+    <label class="check"><input type="checkbox" id="f-on" ${S.notifyOn?'checked':''}> Ingatkan tiap jam kalau belum setor</label>
+    <div class="two"><div><label for="f-from">Dari jam</label><input type="number" id="f-from" min="0" max="23" value="${S.remindFrom}"></div>
+    <div><label for="f-to">Sampai jam</label><input type="number" id="f-to" min="1" max="24" value="${S.remindTo}"></div></div>
+    <div class="stack"><button class="btn ghost" data-act="perm">Minta izin notifikasi</button><button class="btn ghost" data-act="test">Tes notifikasi</button></div>
+    <p class="note">Pengingat per jam jalan saat aplikasi terbuka, dan di latar belakang kalau Chrome mengizinkan (aplikasi sudah dipasang). Frekuensinya diatur Chrome, jadi tidak selalu tepat per jam.</p></div>
+    <div class="stack" style="margin-bottom:14px"><button class="btn" data-act="save">Simpan pengaturan</button><button class="btn danger" data-act="reset">Hapus semua data</button></div>`;
+}
+
+/* ---------- Event ---------- */
+document.addEventListener('click', async e=>{
+  if (e.target.id === 'sheet') return closeSheet();
+  const t = e.target.closest('button'); if (!t) return;
+  const d = t.dataset;
+  if (d.color){ draftColor = d.color; document.querySelectorAll('#sw button').forEach(b=>b.classList.toggle('on', b.dataset.color===d.color)); updatePreview(); return; }
+  if (d.tab){ closeSheet(); tab = d.tab; render(); scrollTo(0,0); return; }
+  if (d.seg){ payTab = d.seg; render(); return; }
+  if (d.pay){ pay(+d.pay); return; }
+  if (d.detail){ detail(+d.detail); return; }
+  if (d.del){
+    if (confirm('Hapus catatan hari ke-'+d.del+'?')){ delete S.payments[d.del]; await persist(); closeSheet(); toast('Catatan dihapus'); render(); }
+    return;
+  }
+  switch (d.act){
+    case 'close': closeSheet(); break;
+    case 'profile': profileSheet(); break;
+    case 'saveprofile': saveProfile(); break;
+    case 'photo': $('#photo').click(); break;
+    case 'rmphoto': draftPhoto = null; updatePreview(); break;
+    case 'register': doRegister(); break;
+    case 'login': doLogin(); break;
+    case 'logout':
+      if (confirm('Keluar dari akun?')){ S.loggedIn = false; await persist(); closeSheet(); render(); }
+      break;
+    case 'forgot':
+      if (confirm('Lupa password? Akun dan semua catatan setoran akan dihapus, lalu kamu bisa membuat akun baru. Lanjutkan?')){
+        S = Core.defaults(); S.ready = true; await persist(); await Core.setLast(0); render();
+      }
+      break;
+    case 'hide': S.hide = !S.hide; await persist(); render(); break;
+    case 'qa-late': payTab = 'late'; tab = 'bayar'; render(); scrollTo(0,0); break;
+    case 'qa-ahead': payTab = 'ahead'; tab = 'bayar'; render(); scrollTo(0,0); break;
+    case 'more': aheadShown += 5; render(); break;
+    case 'payall': payAllLate(); break;
+    case 'perm': await askPermission(); break;
+    case 'test': if (await askPermission()) Core.showReminder(swReg, S, new Date(), true); break;
+    case 'save': {
+      const v = id => $(id).value;
+      const start = +v('#f-start'), step = +v('#f-step'), from = +v('#f-from'), to = +v('#f-to');
+      if (!v('#f-date') || isNaN(start) || isNaN(step) || start<0 || step<0) return toast('Isi angka dengan benar');
+      if (from >= to) return toast('Jam mulai harus lebih awal dari jam selesai');
+      Object.assign(S, { startDate:v('#f-date'), startAmount:start, step, remindFrom:from, remindTo:to, notifyOn:$('#f-on').checked });
+      await persist(); toast('Pengaturan disimpan'); break;
+    }
+    case 'reset':
+      if (confirm('Hapus semua catatan dan pengaturan? Ini tidak bisa dibatalkan.')){ S = Core.defaults(); S.ready = true; await persist(); toast('Data dihapus'); tab='home'; render(); }
+      break;
+  }
+});
+document.addEventListener('keydown', e=>{
+  if (e.key === 'Escape') closeSheet();
+  if (e.key === 'Enter' && document.body.classList.contains('auth') && e.target.tagName === 'INPUT'){
+    e.preventDefault(); const b = $('#auth [data-act="login"], #auth [data-act="register"]'); if (b) b.click();
+  }
+});
+document.addEventListener('input', e=>{ if (e.target.id === 'p-name') updatePreview(); });
+document.addEventListener('change', async e=>{
+  if (e.target.id !== 'photo') return;
+  const f = e.target.files && e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try { draftPhoto = await readPhoto(f); updatePreview(); } catch(_) { toast('Foto tidak bisa dibuka'); }
+});
+
+/* ---------- Notifikasi ---------- */
+async function askPermission(){
+  if (!('Notification' in window)) { toast('Browser tidak mendukung notifikasi'); return false; }
+  let p = Notification.permission;
+  if (p === 'default') p = await Notification.requestPermission();
+  if (p === 'granted') { registerPeriodic(); checkReminder(); }
+  render();
+  return p === 'granted';
+}
+async function registerPeriodic(){
+  try { if (swReg && 'periodicSync' in swReg) await swReg.periodicSync.register('cek-setoran', { minInterval: 60*60*1000 }); } catch(e) {}
+}
+async function checkReminder(){
+  if (!S || !('Notification' in window) || Notification.permission !== 'granted' || !swReg) return;
+  const now = new Date();
+  if (Core.shouldRemind(S, now, await Core.getLast())) { await Core.showReminder(swReg, S, now); await Core.setLast(Date.now()); }
+}
+
+/* ---------- Mulai ---------- */
+function focusSetor(){
+  closeSheet(); tab = 'home'; render();
+  const b = $('#payToday'); if (b){ b.classList.add('pulse'); b.scrollIntoView({block:'center'}); }
+}
+
+async function init(){
+  S = await Core.load();
+  if (!S.ready){ S.ready = true; await persist(); }
+  render();
+  if (new URLSearchParams(location.search).has('setor')){ history.replaceState(null,'',location.pathname); focusSetor(); }
+  if ('serviceWorker' in navigator){
+    try {
+      await navigator.serviceWorker.register('sw.js');
+      swReg = await navigator.serviceWorker.ready;
+      navigator.serviceWorker.addEventListener('message', ev=>{ if (ev.data && ev.data.type==='setor') focusSetor(); });
+      if ('Notification' in window && Notification.permission === 'granted') registerPeriodic();
+      checkReminder();
+    } catch(e){ console.warn('Service worker gagal', e); }
+  }
+  setInterval(()=>{ if (Core.dayNo(S) !== lastDay && !needAuth() && !$('#sheet').classList.contains('open')) render(); checkReminder(); }, 60*1000);
+  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) Core.load().then(x=>{ S=x; if (!needAuth() && !$('#sheet').classList.contains('open')) render(); checkReminder(); }); });
+}
+
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredInstall = e; $('#install').hidden = false; });
+$('#install').addEventListener('click', async ()=>{ if(!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall=null; $('#install').hidden = true; });
+window.addEventListener('appinstalled', ()=>{ $('#install').hidden = true; toast('Aplikasi terpasang'); });
+
+init();
+</script>
+</body>
+</html>
